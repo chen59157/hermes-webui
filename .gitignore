@@ -1,0 +1,77 @@
+# ============================================================
+# Hermes WebUI Desktop Client - .gitignore
+# ============================================================
+
+# Hermes 运行时缓存
+.hermes/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+*.manifest
+*.spec
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# 日志文件
+*.log
+hermes.log
+server_err.txt
+server_out.txt
+
+# 用户设置（含本地路径等敏感信息）
+settings.json
+
+# IDE / 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-*
+.DS_Store
+Thumbs.db
+
+# 环境变量文件
+.env
+.env.local
+
+# 打包产物
+*.exe
+*.msi
+*.dmg
+*.AppImage
+Hermes-WebUI-Portable/
+
+# Node
+node_modules/
+
+# 测试覆盖率
+.coverage
+htmlcov/
+.pytest_cache/
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+
+# Backup directories
+backup_hermes_*/
+hermes-agent-backup-*/
+# Temp templates
+env_template
+# Generated startup scripts
+start_hermes.bat
+启动 Hermes WebUI.bat
+启动 Hermes WebUI.vbs

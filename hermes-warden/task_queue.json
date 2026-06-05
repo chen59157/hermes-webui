@@ -1,0 +1,8 @@
+{
+  "_comment": "HermesWarden 任务队列",
+  "tasks": [],
+  "max_total_cost": 10.00,
+  "max_parallel": 2,
+  "disk_alert_gb": 10,
+  "log_dir": "./logs"
+}

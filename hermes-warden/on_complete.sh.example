@@ -1,0 +1,6 @@
+#!/bin/bash
+# HermesWarden 全完成钩子 示例
+# 所有非watch任务完成后自动调此脚本（如果存在）
+# 用户可改为发消息/邮件通知
+
+echo "✅ HermesWarden: 所有任务已完成 · $(date)"

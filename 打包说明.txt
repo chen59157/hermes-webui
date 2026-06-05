@@ -1,0 +1,173 @@
+# Hermes WebUI 桌面端打包方案
+
+## 1. 项目结构分析
+
+当前项目包含：
+- `hermes_desktop.py` - 桌面应用主入口
+- `hermes-webui-cn/` - 前端静态文件（~7MB）
+- `hermes-agent/` - 后端服务（含 venv ~80MB）
+- `tk_runtime/` - 运行时依赖
+- `.hermes/` - 数据目录
+
+## 2. 打包目标
+
+**需求**：
+1. 安装位置可选择其他盘（D:/E:/等）
+2. 运行时建议在 C 盘（性能/稳定性）
+3. 生成可安装的 .exe 安装包
+
+**方案选择**：
+- **Inno Setup** - 专业安装包制作，支持自定义安装路径、创建快捷方式、注册卸载程序
+- **PyInstaller** - 打包 Python 为独立 exe（但 venv 依赖复杂）
+- **组合方案**：Inno Setup 打包整个项目文件夹 + 创建启动脚本
+
+## 3. 安装包设计
+
+### 3.1 目录结构
+```
+HermesWebUI_Setup.exe (安装包)
+├── hermes_desktop.py
+├── hermes-icon.ico
+├── hermes-webui-cn/
+├── hermes-agent/
+│   ├── .venv/ (完整虚拟环境)
+│   └── ...
+├── tk_runtime/
+├── .hermes/
+└── 使用说明.txt
+```
+
+### 3.2 安装流程
+1. 用户选择安装路径（如 D:\Programs\Hermes WebUI）
+2. 复制所有文件到目标位置
+3. 修复 venv 路径（pyvenv.cfg 中的 home 路径）
+4. 创建桌面快捷方式
+5. 创建开始菜单项
+6. 注册卸载程序
+
+### 3.3 运行时优化
+- 安装时建议用户安装在 C 盘（默认 `%ProgramFiles%\Hermes WebUI`）
+- 如果用户选择其他盘，运行时数据仍会写入 `%APPDATA%`
+- 启动脚本使用 `pythonw.exe` 避免黑窗口
+
+## 4. 实施步骤
+
+### 4.1 准备打包脚本
+创建 `build_installer.iss` (Inno Setup 脚本)：
+
+```iss
+[Setup]
+AppName=Hermes WebUI
+AppVersion=2.1.0
+AppPublisher=Hermes Project
+DefaultDirName={pf}\Hermes WebUI
+DefaultGroupName=Hermes WebUI
+UninstallDisplayIcon={app}\hermes-icon.ico
+Compression=lzma2
+SolidCompression=yes
+OutputDir=.\dist
+OutputBaseFilename=HermesWebUI_Setup
+
+[Files]
+Source: "D:\桌面\Hermes-WebUI\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{group}\Hermes WebUI"; Filename: "{app}\启动 Hermes WebUI.bat"; IconFilename: "{app}\hermes-icon.ico"
+Name: "{commondesktop}\Hermes WebUI"; Filename: "{app}\启动 Hermes WebUI.bat"; IconFilename: "{app}\hermes-icon.ico"
+
+[Run]
+Filename: "{app}\启动 Hermes WebUI.bat"; Description: "启动 Hermes WebUI"; Flags: postinstall nowait skipifsilent
+
+[UninstallRun]
+Filename: "{cmd}"; Parameters: "/C taskkill /F /IM pythonw.exe /T 2>nul & timeout 2 >nul"; Flags: runhidden
+
+[Code]
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  PythonPath: string;
+  PyvenvFile: string;
+begin
+  if CurStep = ssPostInstall then
+  begin
+    // 修复 venv 路径
+    PyvenvFile := ExpandConstant('{app}\hermes-agent\.venv\pyvenv.cfg');
+    if FileExists(PyvenvFile) then
+    begin
+      // 查找系统 Python
+      PythonPath := GetEnv('LOCALAPPDATA') + '\Programs\Python\Python312\';
+      if not DirExists(PythonPath) then
+        PythonPath := 'C:\Python312\';
+      if DirExists(PythonPath) then
+      begin
+        SaveStringToFile(PyvenvFile,
+          'home = ' + PythonPath + #13#10 +
+          'include-system-site-packages = false' + #13#10 +
+          'version = 3.12.10' + #13#10 +
+          'executable = ' + PythonPath + 'python.exe' + #13#10,
+          False);
+      end;
+    end;
+  end;
+end;
+```
+
+### 4.2 创建启动脚本
+`启动 Hermes WebUI.bat`：
+```batch
+@echo off
+chcp 65001 >nul 2>&1
+cd /d "%~dp0"
+start /B "" "%~dp0hermes-agent\.venv\Scripts\pythonw.exe" "%~dp0hermes_desktop.py"
+```
+
+### 4.3 打包命令
+```powershell
+# 1. 清理临时文件
+Remove-Item "D:\桌面\Hermes-WebUI\__pycache__" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "D:\桌面\Hermes-WebUI\*.log" -Force -ErrorAction SilentlyContinue
+
+# 2. 运行 Inno Setup 编译
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "D:\桌面\Hermes-WebUI\build_installer.iss"
+```
+
+## 5. 测试验证
+
+### 5.1 安装测试
+1. 在干净 Win11 虚拟机运行安装包
+2. 选择不同安装路径（C盘/D盘）
+3. 验证快捷方式、开始菜单项
+4. 启动应用，测试功能
+
+### 5.2 卸载测试
+1. 通过控制面板卸载
+2. 验证文件清理
+3. 检查注册表清理
+
+## 6. 注意事项
+
+1. **Python 依赖**：安装包需要用户已安装 Python 3.10+
+2. **venv 修复**：安装时需动态修复 pyvenv.cfg 中的 Python 路径
+3. **杀软误报**：pythonw.exe 可能被误报，建议代码签名
+4. **数据存储**：用户数据存储在 `%APPDATA%\Tencent\Marvis`，与安装位置无关
+5. **端口冲突**：默认使用 8787 端口，安装时检查
+
+## 7. 后续优化
+
+1. **静默安装**：支持 `/SILENT` 参数
+2. **自动更新**：集成更新检查
+3. **代码签名**：获取数字证书
+4. **多语言**：支持中英文安装界面
+5. **依赖检查**：安装时检查 Python 版本
+
+## 8. 快速开始
+
+```powershell
+# 生成安装包
+cd "D:\桌面\Hermes-WebUI"
+.\build_installer.bat
+
+# 安装包位置
+# .\dist\HermesWebUI_Setup.exe
+```
+
+安装包大小预计：~100MB（压缩后）
