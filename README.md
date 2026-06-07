@@ -2,7 +2,7 @@
 
 > 🤖 基于 Hermes Agent 的 Windows 桌面 AI 助手客户端
 
-[![Version](https://img.shields.io/badge/version-v3.1.0-blue)]()
+[![Version](https://img.shields.io/badge/version-v3.2.0-blue)]()
 [![Python](https://img.shields.io/badge/python-3.12-green)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-lightgrey)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -154,7 +154,7 @@ hermes-webui/
 | 桌面窗口 | pywebview 6.2.1 (EdgeChromium / WebView2) |
 | 前端 | HTML5 + JavaScript + CSS（无构建步骤） |
 | 后端框架 | Flask (Python) |
-| Agent 引擎 | Hermes Agent 0.15.2 |
+| Agent 引擎 | Hermes Agent 0.16.0 |
 | 安装包 | Inno Setup 6 (Pascal Script) |
 | 嵌入式 Python | Python 3.12.10 |
 | 系统托盘 | infi.systray + Win32 API |
@@ -191,4 +191,4 @@ MIT License
 
 ---
 
-*版本 3.1.0 | 更新于 2026-06-05*
+*版本 3.2.0 | 更新于 2026-06-05*

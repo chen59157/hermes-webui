@@ -2,7 +2,7 @@
 ; 编译: ISCC.exe build_installer.iss
 
 #define MyAppName "Hermes WebUI"
-#define MyAppVersion "3.1.0"
+#define MyAppVersion "3.2.0"
 #define MyAppPublisher "Hermes Project"
 #define MyAppURL "https://github.com/hermes"
 #define MyAppExeName "启动 Hermes WebUI.bat"
@@ -20,7 +20,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 LicenseFile=D:\桌面\非~主要\Hermes-WebUI\使用说明.txt
 OutputDir=D:\桌面\非~主要\Hermes-WebUI\dist
-OutputBaseFilename=HermesWebUI_Setup_v3.1.0
+OutputBaseFilename=HermesWebUI_Setup_v3.2.0
 SetupIconFile=D:\桌面\非~主要\Hermes-WebUI\hermes-icon.ico
 Compression=lzma2/max
 SolidCompression=yes
