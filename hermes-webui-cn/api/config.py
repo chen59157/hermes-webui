@@ -4146,6 +4146,95 @@ def save_platform_config(channel, data):
     return {"ok": True, "channel": channel}
 
 
+
+
+# ── Feishu (飞书) platform configuration ────────────────────────────────────
+import re as _re
+
+_FEISHU_ENV_KEYS = [
+    'FEISHU_APP_ID', 'FEISHU_APP_SECRET', 'FEISHU_DOMAIN',
+    'FEISHU_CONNECTION_MODE', 'FEISHU_ENCRYPT_KEY',
+    'FEISHU_VERIFICATION_TOKEN', 'FEISHU_ALLOWED_USERS',
+    'FEISHU_HOME_CHANNEL', 'FEISHU_GROUP_POLICY',
+    'FEISHU_REQUIRE_MENTION', 'FEISHU_ALLOW_BOTS',
+]
+
+def _read_env_file():
+    """Read .hermes/.env as a dict"""
+    env_path = HOME / '.hermes' / '.env'
+    result = {}
+    if env_path.exists():
+        for line in env_path.read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' in line:
+                k, v = line.split('=', 1)
+                result[k.strip()] = v.strip()
+    return result
+
+def _write_env_file(updates):
+    """Update .hermes/.env with new key-value pairs"""
+    env_path = HOME / '.hermes' / '.env'
+    env_path.parent.mkdir(parents=True, exist_ok=True)
+    existing = {}
+    lines = []
+    if env_path.exists():
+        for line in env_path.read_text(encoding='utf-8').splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith('#'):
+                lines.append(line)
+                continue
+            if '=' in stripped:
+                k, v = stripped.split('=', 1)
+                existing[k.strip()] = True
+                if k.strip() in updates:
+                    lines.append(f'{k.strip()}={updates[k.strip()]}')
+                else:
+                    lines.append(line)
+            else:
+                lines.append(line)
+    # Add new keys
+    for k, v in updates.items():
+        if k not in existing and v:
+            lines.append(f'{k}={v}')
+    env_path.write_text(chr(10).join(lines) + chr(10), encoding='utf-8')
+
+def get_feishu_config():
+    """Get current Feishu configuration from .env"""
+    env = _read_env_file()
+    return {
+        'app_id': env.get('FEISHU_APP_ID', ''),
+        'app_secret': env.get('FEISHU_APP_SECRET', ''),
+        'domain': env.get('FEISHU_DOMAIN', 'feishu'),
+        'connection_mode': env.get('FEISHU_CONNECTION_MODE', 'websocket'),
+        'allowed_users': env.get('FEISHU_ALLOWED_USERS', ''),
+        'home_channel': env.get('FEISHU_HOME_CHANNEL', ''),
+        'group_policy': env.get('FEISHU_GROUP_POLICY', 'open'),
+        'require_mention': env.get('FEISHU_REQUIRE_MENTION', 'true') == 'true',
+        'connected': bool(env.get('FEISHU_APP_ID', '').strip()),
+    }
+
+def save_feishu_config(data):
+    """Save Feishu configuration to .env"""
+    updates = {}
+    field_map = {
+        'app_id': 'FEISHU_APP_ID',
+        'app_secret': 'FEISHU_APP_SECRET',
+        'domain': 'FEISHU_DOMAIN',
+        'connection_mode': 'FEISHU_CONNECTION_MODE',
+        'allowed_users': 'FEISHU_ALLOWED_USERS',
+        'home_channel': 'FEISHU_HOME_CHANNEL',
+        'group_policy': 'FEISHU_GROUP_POLICY',
+    }
+    for field, env_key in field_map.items():
+        if field in data:
+            updates[env_key] = str(data[field]).strip()
+    if 'require_mention' in data:
+        updates['FEISHU_REQUIRE_MENTION'] = 'true' if data['require_mention'] else 'false'
+    _write_env_file(updates)
+    return {'ok': True, 'message': '飞书配置已保存'}
+
 # ── SESSIONS in-memory cache (LRU OrderedDict) ───────────────────────────────
 SESSIONS: collections.OrderedDict = collections.OrderedDict()
 

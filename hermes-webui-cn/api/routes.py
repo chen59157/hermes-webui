@@ -3046,6 +3046,10 @@ def handle_get(handler, parsed) -> bool:
         from api.config import get_platform_configs
         return j(handler, get_platform_configs())
 
+    if parsed.path == "/api/feishu/config":
+        from api.config import get_feishu_config
+        return j(handler, get_feishu_config())
+
     if parsed.path == "/api/onboarding/status":
         return j(handler, get_onboarding_status())
 
@@ -4058,6 +4062,14 @@ def handle_post(handler, parsed) -> bool:
             if not channel:
                 return bad(handler, "missing 'channel' field")
             result = save_platform_config(channel, data)
+            return j(handler, result)
+        except Exception as e:
+            return bad(handler, str(e), 500)
+
+    if parsed.path == "/api/feishu/config":
+        from api.config import save_feishu_config
+        try:
+            result = save_feishu_config(body)
             return j(handler, result)
         except Exception as e:
             return bad(handler, str(e), 500)
