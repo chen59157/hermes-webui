@@ -4197,7 +4197,7 @@ function updateThinkingPanel(text){
   // 显示光标（思考中）
   if(cursor) cursor.style.display='';
   // 更新状态
-  if(status) status.textContent='思考中...';
+  if(status) status.textContent=(typeof t==='function'?t('thinking_panel_status_thinking'):null)||'思考中...';
   // 添加脉冲点
   const header=panel.querySelector('.thinking-panel-header');
   if(header&&!header.querySelector('.thinking-panel-dot')){
@@ -4214,7 +4214,7 @@ function finalizeThinkingPanel(){
   const status=document.getElementById('thinkingPanelStatus');
   const panel=document.getElementById('thinkingPanel');
   if(cursor) cursor.style.display='none';
-  if(status) status.textContent='完成';
+  if(status) status.textContent=(typeof t==='function'?t('thinking_panel_status_done'):null)||'完成';
   // 移除脉冲点
   if(panel){
     const dot=panel.querySelector('.thinking-panel-dot');
@@ -4228,9 +4228,9 @@ function clearThinkingPanel(){
   const panel=document.getElementById('thinkingPanel');
   // 不隐藏面板，只重置为占位状态
   if(panel) panel.classList.remove('collapsed');
-  if(content) content.textContent='发送消息后，AI 的思考过程将在此实时展示...';
+  if(content) content.textContent=(typeof t==='function'?t('thinking_panel_placeholder'):null)||'发送消息后，AI 的思考过程将在此实时展示...';
   if(cursor) cursor.style.display='none';
-  if(status) status.textContent='等待中...';
+  if(status) status.textContent=(typeof t==='function'?t('thinking_panel_status_waiting'):null)||'等待中...';
   // 移除脉冲点
   if(panel){
     const dot=panel.querySelector('.thinking-panel-dot');
